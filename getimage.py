@@ -124,8 +124,8 @@ for year in range(First_year,Last_year + 1):
      try_times = 0
      volume_page_content = Muti_try_year_or_vol('http://www.nongji360.com/e-book/view.asp?' + volume, volume_name, 0, 20)
      if try_times > 0:
-       print(bytes(volume) + 'vol error' + bytes(try_times))
-       Error_output('第' + bytes(volume) +'期:下载出错' + bytes(try_times) +'次 ' + 'http://www.nongji360.com/e-book/view.asp?' + volume)
+       print(bytes(volume_name) + 'vol error' + bytes(try_times))
+       Error_output('第' + bytes(volume_name) +'期:下载出错' + bytes(try_times) +'次 ' + 'http://www.nongji360.com/e-book/view.asp?' + volume)
      image_url = re.findall(r"img='/pics/ebook/magazine\d/\d*.jpg|img='/pics/ebook/magazine\d/\d*/\w*\d*.jpg",volume_page_content)
      image_title = re.findall(r"infoTitle='\S*",volume_page_content)
      s = 1
@@ -157,13 +157,16 @@ for year in range(First_year,Last_year + 1):
      img_list.sort(key=lambda x:int(x[:-4]))
      pdf_file = canvas.Canvas(Pdf_DocumentPath + '\\' + volume_name+'.pdf', pagesize = (840, 1132))
      for img_file in img_list:
-     	 x,y = GetPicInfo(img_file)
-     	 if int(x) * int(y) / 840 > 1132:
-     	 	 pdf_file.drawImage(img_file, 0, 0, 840, 1132)
-     	 	 pdf_file.showPage()
-     	 else:
-     	 	 pdf_file.drawImage(img_file, 0, 0, 840)
-     	 	 pdf_file.showPage()
+       try:
+     	     x,y = GetPicInfo(img_file)
+     	     if int(x) * int(y) / 840 > 1132:
+     	 	     pdf_file.drawImage(img_file, 0, 0, 840, 1132)
+     	 	     pdf_file.showPage()
+     	     else:
+     	 	     pdf_file.drawImage(img_file, 0, 0, 840)
+     	 	     pdf_file.showPage()
+     	 	except:
+     	 	  pass
      pdf_file.save()
      os.chdir(CurrentPath + '\\')
      print('Convert to pdf finished!')
