@@ -165,8 +165,8 @@ for year in range(First_year,Last_year + 1):
      	     else:
      	 	     pdf_file.drawImage(img_file, 0, 0, 840)
      	 	     pdf_file.showPage()
-     	 	except:
-     	 	  pass
+       except:
+     	 	pass
      pdf_file.save()
      os.chdir(CurrentPath + '\\')
      print('Convert to pdf finished!')
