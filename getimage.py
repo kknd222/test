@@ -1,5 +1,5 @@
 #coding:utf-8
-import urllib2
+import urllib.request
 import os
 import re
 import urllib
@@ -10,13 +10,14 @@ import sys
 #import HTMLParser
 import glob
 from reportlab.pdfgen import canvas
-import Image
+#import Image  #2.x
+import PIL.Image  #3.x
 import shutil
-import thread
+#import thread
 
 
-First_year = 2015
-Last_year = 2015
+First_year = 2018
+Last_year = 2018
 socket.setdefaulttimeout(3)
 CurrentPath = os.getcwd()
 global DocumentPath
@@ -31,7 +32,7 @@ ROOT = 'http://www.nongji360.com'
 def Error_output(log):
   try:
     error_log = open(ErrorLogPath,'a')
-    print >> error_log, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " " + log
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " " + log,file=error_log)
     error_log.close()
   except:
     pass
@@ -48,7 +49,7 @@ def Muti_try_image(url, file, volume, page, sleep_times, total_try_times):
   global try_times
   try:
     time.sleep(sleep_times)
-    connection = urllib2.urlopen(url)
+    connection = urllib.request.urlopen(url)
     file.write(connection.read())
     connection.close()
   except:
@@ -66,8 +67,8 @@ def Muti_try_year_or_vol(url, year_or_vol, sleep_times, total_try_times):
     try:
      time.sleep(sleep_times)
      global year_or_vol_page_read
-     year_or_vol_page_req = urllib2.Request(url)
-     year_or_vol_page_res = urllib2.urlopen(year_or_vol_page_req)
+     year_or_vol_page_req = urllib.request.Request(url)
+     year_or_vol_page_res = urllib.request.urlopen(year_or_vol_page_req)
      year_or_vol_page_read = year_or_vol_page_res.read()
      year_or_vol_page_res.close()
     except:
@@ -82,7 +83,7 @@ def Muti_try_year_or_vol(url, year_or_vol, sleep_times, total_try_times):
 
 def GetPicInfo(img_file):
     try:    
-        image_file = Image.open(img_file)
+        image_file = PIL.Image.open(img_file)
         return image_file.size[0], image_file.size[1]
     except:
         pass
@@ -110,22 +111,24 @@ except:
   pass
 
 for year in range(First_year,Last_year + 1):
-  year_page_url = 'http://www.nongji360.com/e-book/?sy=' + bytes(year)
+  year_page_url = 'http://www.nongji360.com/e-book/?sy=' + str(year)
   try_times = 0
-  year_page_content = Muti_try_year_or_vol(year_page_url, year, 0, 20 )
+  year_page_content = Muti_try_year_or_vol(year_page_url, year, 0, 6 )
+  year_page_content = year_page_content.decode('gb18030')
   if try_times > 0:
-     print(bytes(year) + 'year error' + bytes(try_times))
-     Error_output('第' + bytes(year) +'年:下载出错' + bytes(try_times) +'次 ' + year_page_url)
+     print(str(year) + 'year error' + str(try_times))
+     Error_output('第' + str(year) +'年:下载出错' + str(try_times) +'次 ' + year_page_url)
   volume_list_temp = re.findall(r"ebooktime=\d*",year_page_content)
   volume_list = volume_list_temp[::2]
   volume_list.sort()
   for volume in volume_list:
      volume_name = volume.lstrip('ebooktime=')
      try_times = 0
-     volume_page_content = Muti_try_year_or_vol('http://www.nongji360.com/e-book/view.asp?' + volume, volume_name, 0, 20)
+     volume_page_content = Muti_try_year_or_vol('http://www.nongji360.com/e-book/view.asp?' + volume, volume_name, 0, 6)
+     volume_page_content = volume_page_content.decode('gb18030')
      if try_times > 0:
-       print(bytes(volume_name) + 'vol error' + bytes(try_times))
-       Error_output('第' + bytes(volume_name) +'期:下载出错' + bytes(try_times) +'次 ' + 'http://www.nongji360.com/e-book/view.asp?' + volume)
+       print(str(volume_name) + 'vol error' + str(try_times))
+       Error_output('第' + str(volume_name) +'期:下载出错' + str(try_times) +'次 ' + 'http://www.nongji360.com/e-book/view.asp?' + volume)
      image_url = re.findall(r"img='/pics/ebook/magazine\d/\d*.jpg|img='/pics/ebook/magazine\d/\d*/\w*\d*.jpg",volume_page_content)
      image_title = re.findall(r"infoTitle='\S*",volume_page_content)
      s = 1
@@ -136,20 +139,20 @@ for year in range(First_year,Last_year + 1):
      title_file = open (SublistPath,'a')
      for title in image_title:
          title = title.strip('\'')
-         print >> title_file, volume_name +' ' + bytes(s) + ' ' + title.lstrip('infoTitle=\'')
+         print(volume_name +' ' + str(s) + ' ' + title.lstrip('infoTitle=\''),file=title_file)
          s+=1
      title_file.close()
      s = 1
      for image in image_url:
          image = image.lstrip("img=\'")
-         image_file = open(Image_DocumentPath + '\\' + volume_name +'\\' + bytes(s) + '.jpg','wb')
+         image_file = open(Image_DocumentPath + '\\' + volume_name +'\\' + str(s) + '.jpg','wb')
          try_times = 0
-         Muti_try_image(ROOT + image, image_file, volume_name, s, 0, 20)
+         Muti_try_image(ROOT + image, image_file, volume_name, s, 0, 6)
          if try_times > 0:
-             print(volume_name + 'Page'+bytes(s)+'error' + bytes(try_times))
-             Error_output('第' + volume_name +'期 第'+bytes(s)+'页:下载出错' + bytes(try_times) +'次 ' + ROOT + image) 
+             print(volume_name + 'Page'+str(s)+'error' + str(try_times))
+             Error_output('第' + volume_name +'期 第'+str(s)+'页:下载出错' + str(try_times) +'次 ' + ROOT + image) 
          image_file.close()
-         print(volume_name+'_' + bytes(s) + '.jpg')
+         print(volume_name+'_' + str(s) + '.jpg')
          s+=1
      print('Convert to pdf')
      os.chdir(Image_DocumentPath + '\\' + volume_name + '\\')
